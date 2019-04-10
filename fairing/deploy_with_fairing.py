@@ -47,7 +47,4 @@ if __name__ == '__main__':
   # location in the context .tar.gz
   os.chdir(context_dir)
   fairing.config.set_preprocessor('python', input_files=input_files)
-
   fairing.config.run()
-  #serve = HousingServe()
-  #print(serve.predict(np.ndarray([1, 37]), None))
