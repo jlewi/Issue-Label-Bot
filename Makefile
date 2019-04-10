@@ -2,6 +2,7 @@
 # Individual images will be
 # $(IMG)/$(NAME):$(TAG)
 IMG ?= gcr.io/code-search-demo/mlapp/base
+PROJECT ?= code-search-demo
 
 # List any changed  files. We only include files in the notebooks directory.
 # because that is the code in the docker image.
@@ -26,18 +27,25 @@ all: build
 # To build without the cache set the environment variable
 # export DOCKER_BUILD_OPTS=--no-cache
 .PHONY: build
-build: ./deployment/Dockerfile ./requirements.txt ./flask_app
+build-dir: ./deployment/Dockerfile ./requirements.txt ./flask_app
 	rm -rf ./build
 	mkdir  -p build
 	cp ./requirements.txt ./build
 	cp ./deployment/Dockerfile ./build
 	cp -r ./flask_app ./build
+
+build: build-dir
 	cd build && docker build ${DOCKER_BUILD_OPTS} -t $(IMG):$(TAG) -f Dockerfile . \
            --label=git-verions=$(GIT_VERSION)
 	docker tag $(IMG):$(TAG) $(IMG):latest
 	@echo Built $(IMG):latest
 	@echo Built $(IMG):$(TAG)
 
+
+build-gcb: build-dir	
+	gcloud builds submit --machine-type=n1-highcpu-32 --project=$(PROJECT) --tag=$(IMG):$(TAG) \
+		--timeout=3600 ./build
+	@echo Built $(IMG):$(TAG)
 
 # Build but don't attach the latest tag. This allows manual testing/inspection of the image
 # first.

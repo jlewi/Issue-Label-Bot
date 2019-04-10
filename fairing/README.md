@@ -62,6 +62,12 @@ On GCP you may need to run the following gcloud command to provide docker with c
 gcloud auth configure docker
 ```
 
+You can also use GCB to build the image. This can be much faster because we avoid pulling/pushing the base image over our local network which can be quite large
+
+```
+PROJECT=${PROJECT} IMG=${IMG} make build-gcb
+```
+
 ## Start a notebook on Kubeflow
 
 If you have not already done so, follow the Kubeflow getting [started guide](https://www.kubeflow.org/docs/started/) to deploy Kubeflow.

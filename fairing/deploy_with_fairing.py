@@ -1,3 +1,4 @@
+import argparse
 import logging
 import fairing
 from fairing.builders.append import append
@@ -7,14 +8,16 @@ import os
 import shutil
 import tempfile
 
-if __name__ == '__main__':
+def deploy(registry, base_image):
   logging.getLogger().setLevel(logging.INFO)
-  # This code won't be executed when this module is loaded by Seldon.
-  fairing.config.set_builder('append',
-    registry='gcr.io/code-search-demo',
-    base_image="seldonio/seldon-core-s2i-python3:0.4")
+  fairing.config.set_builder('append', registry=registry, base_image=base_image)
 
-  fairing.config.set_deployer('serving', serving_class="LabelPrediction")
+  # Add a common label.
+  labels = {
+    "app": "mlapp",
+  }
+  fairing.config.set_deployer('serving', serving_class="LabelPrediction",
+                              labels=labels)
 
   # Get the list of all the python files
   this_dir = os.path.dirname(__file__)
@@ -48,3 +51,16 @@ if __name__ == '__main__':
   os.chdir(context_dir)
   fairing.config.set_preprocessor('python', input_files=input_files)
   fairing.config.run()
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    "--registry", default="", type=str,
+    help=("The registry where your images should be pushed"))
+
+  parser.add_argument(
+    "--base_image", default="", type=str,
+    help=("The base image to use"))
+
+  args = parser.parse_args()
+  deploy(args.registry, args.base_image)

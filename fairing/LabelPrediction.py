@@ -20,11 +20,34 @@ https://docs.seldon.io/projects/seldon-core/en/latest/python/python_wrapping.htm
 This is the Seldon interface class.
 """
 
+import app
+import logging
+import tensorflow as tf
+
 class LabelPrediction(object):
   def __init__(self):
     """"""
-    pass
+    self.graph = None
+    self.issue_labeler = None
 
   def predict(self, X, feature_names):
     """Predict using the model for given ndarray."""
-    return [1, 2]
+
+    if self.issue_labeler is None:
+      # Load the model.
+      logging.info("Creating the issue labeler and initializing TF graph.")
+      self.graph = tf.get_default_graph()
+      self.issue_labeler = app.init_issue_labeler()
+
+    probabilities = self.issue_labeler.get_probabilities(body=X[1],
+                                                    title=X[0])
+
+    logging.info("Probability keys: %s", probabilities.keys())
+
+    p = [0] * 3
+    for i, k in enumerate(["bug", "feature_request", "question"]):
+      if not k in probabilities:
+        continue
+      p[i] = probabilities[k]
+
+    return [p]
