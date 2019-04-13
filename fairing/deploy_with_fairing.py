@@ -50,7 +50,7 @@ def deploy(registry, base_image):
   # location in the context .tar.gz
   os.chdir(context_dir)
   fairing.config.set_preprocessor('python', input_files=input_files)
-  fairing.config.run()
+  return fairing.config.run()
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

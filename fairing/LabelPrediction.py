@@ -30,7 +30,7 @@ class LabelPrediction(object):
     self.graph = None
     self.issue_labeler = None
 
-  def predict(self, X, feature_names):
+  def predict(self, data, feature_names):
     """Predict using the model for given ndarray."""
 
     if self.issue_labeler is None:
@@ -39,11 +39,8 @@ class LabelPrediction(object):
       self.graph = tf.get_default_graph()
       self.issue_labeler = app.init_issue_labeler()
 
-    probabilities = self.issue_labeler.get_probabilities(body=X[1],
-                                                    title=X[0])
-
-    logging.info("Probability keys: %s", probabilities.keys())
-
+    probabilities = self.issue_labeler.get_probabilities(body=data[1],
+                                                         title=data[0])
     p = [0] * 3
     for i, k in enumerate(["bug", "feature_request", "question"]):
       if not k in probabilities:
