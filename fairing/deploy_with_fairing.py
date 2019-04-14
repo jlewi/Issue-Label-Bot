@@ -9,7 +9,8 @@ import shutil
 import tempfile
 
 def deploy(registry, base_image):
-  logging.getLogger().setLevel(logging.INFO)
+  context_dir, input_files = build_context()
+
   fairing.config.set_builder('append', registry=registry, base_image=base_image)
 
   # Add a common label.
@@ -19,6 +20,13 @@ def deploy(registry, base_image):
   fairing.config.set_deployer('serving', serving_class="LabelPrediction",
                               labels=labels)
 
+  # Need to change to context_dir so that paths are added at the correct
+  # location in the context .tar.gz
+  fairing.config.set_preprocessor('python', input_files=input_files)
+  os.chdir(context_dir)
+  return fairing.config.run()
+
+def build_context():
   # Get the list of all the python files
   this_dir = os.path.dirname(__file__)
   base_dir = os.path.abspath(os.path.join(this_dir, ".."))
@@ -46,13 +54,10 @@ def deploy(registry, base_image):
                         os.path.join(context_dir, name))
         input_files.append(name)
 
-  # Need to change to context_dir so that paths are added at the correct
-  # location in the context .tar.gz
-  os.chdir(context_dir)
-  fairing.config.set_preprocessor('python', input_files=input_files)
-  return fairing.config.run()
+  return context_dir, input_files
 
 if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.INFO)
   parser = argparse.ArgumentParser()
   parser.add_argument(
     "--registry", default="", type=str,
